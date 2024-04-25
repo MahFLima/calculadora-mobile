@@ -24,19 +24,30 @@ export default function Calculadora(){
     setAcumulado(0)
   }
 
-  function handleResult(){
-    console.log(lastOperation)
+  async function handleResult(){
     
     if(lastOperation === "+"){
-      setDisplayValue((acumulado + n1).toString()); // Atualizando o novo número com o valor acumulado
-      setHistorico("")
-      setAcumulado(0); // Resetando o valor acumulado após a operação
+      await setDisplayValue((acumulado + n1).toString());
+      await setHistorico((acumulado + n1).toString())
+      setAcumulado(0);
     }
         
     if(lastOperation === "-"){
-      setDisplayValue((acumulado - n1).toString()); // Atualizando o novo número com o valor acumulado
-      setHistorico("")
-      setAcumulado(0); // Resetando o valor acumulado após a operação
+      await setDisplayValue((acumulado - n1).toString());
+      await setHistorico((acumulado - n1).toString())
+      setAcumulado(0);
+    }
+
+    if(lastOperation === "*"){
+      await setDisplayValue((acumulado * n1).toString());
+      await setHistorico((acumulado * n1).toString())
+      setAcumulado(0);
+    }
+
+    if(lastOperation === "/"){
+      await setDisplayValue((acumulado / n1).toString());
+      await setHistorico((acumulado / n1).toString())
+      setAcumulado(0);
     }
   }
 
@@ -55,7 +66,7 @@ export default function Calculadora(){
       }
       if(input === "DEL"){
         let novaString = displayValue.substring(0, displayValue.length - 1);
-        let novoHistorico = displayValue.substring(0, historico.length - 1);
+        let novoHistorico = historico.substring(0, historico.length - 1);
         setDisplayValue(novaString)
         setHistorico(novoHistorico)
         return
@@ -63,20 +74,19 @@ export default function Calculadora(){
       // Se o input é um operador
       handleOperation(input);
     }
-    setHistorico(historico + input)
+    if(input !== "+/-"){
+      setHistorico(historico + input)
+    }
+    
   };
 
-  function handleOperation(op: string){
+  async function handleOperation(op: string){
     n1 = parseFloat(displayValue || "0");
-
-    if(lastOperation === ""){
-      handleResult()
-    }
 
     switch(op) {
       case "+":
         setAcumulado(acumulado + n1);
-        setDisplayValue(""); // Limpando o novo número após a operação
+        setDisplayValue(""); 
         setLastOperation(op)
         break;
       case "-":
@@ -88,6 +98,37 @@ export default function Calculadora(){
         setDisplayValue("");
         setLastOperation(op)
         break;
+      case "*":
+        console.log(acumulado)
+        console.log(n1)
+        if(acumulado === 0){
+          setAcumulado(1)
+          setAcumulado(acumulado + n1);
+        } else{
+          setAcumulado(acumulado * n1);
+        }
+
+        setDisplayValue("");
+        setLastOperation(op)
+        break
+      case "/":
+        setAcumulado(acumulado + n1);
+        setDisplayValue(""); 
+        setLastOperation(op)
+        break
+      case "%":
+        n1 = n1 / 100
+        setDisplayValue(n1.toString())
+        break
+      case "+/-":
+        setDisplayValue(prev => {
+          if (prev[0] === '-') {
+            return prev.slice(1); // Remove o sinal de menos
+          } else {
+            return '-' + prev; // Adiciona o sinal de menos
+          }
+        });
+        n1 = parseFloat(displayValue)
       case "=":
         handleResult()
         break;
@@ -161,7 +202,7 @@ const styles = StyleSheet.create({
   },
   result:{
     padding: 20,
-    minHeight: "30%",
+    minHeight: screenHeight * 0.3,
     position: "relative",
     flex: 1,
     justifyContent: "flex-end",
@@ -180,11 +221,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   textInput:{
-    fontSize: 34
+    fontSize: 34,
+    minHeight: 34
   },
   keyboard:{
     paddingTop: 20,
-    minHeight: '74%',
+    minHeight: screenHeight * 0.7,
     backgroundColor: '#EEEEEE',
     flex: 1,
     flexDirection: 'row',
